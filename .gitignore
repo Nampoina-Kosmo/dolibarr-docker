@@ -1,3 +1,4 @@
 .env
 dolibarr/documents/*
 !dolibarr/documents/.gitkeep
+dolibarr/custom/doliclaw/

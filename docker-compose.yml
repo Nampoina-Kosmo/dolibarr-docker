@@ -40,6 +40,7 @@ services:
     volumes:
       - ./dolibarr/documents:/var/www/documents
       - ./dolibarr/custom:/var/www/html/custom
+      - ./php/custom.ini:/usr/local/etc/php/conf.d/zz-custom.ini:ro
 
 volumes:
   db_data:
