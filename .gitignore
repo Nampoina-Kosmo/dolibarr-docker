@@ -2,4 +2,5 @@
 dolibarr/documents/*
 !dolibarr/documents/.gitkeep
 dolibarr/custom/doliclaw/
+dolibarr/custom/einvoicing/
 TODO.md
