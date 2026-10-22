@@ -42,5 +42,17 @@ services:
       - ./dolibarr/custom:/var/www/html/custom
       - ./php/custom.ini:/usr/local/etc/php/conf.d/zz-custom.ini:ro
 
+  adminer:
+    image: adminer:latest
+    container_name: dolibarr-adminer
+    restart: unless-stopped
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${ADMINER_PORT:-8096}:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: mariadb
+
 volumes:
   db_data:
