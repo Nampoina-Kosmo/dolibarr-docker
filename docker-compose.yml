@@ -1,7 +1,7 @@
 services:
   mariadb:
     image: mariadb:11
-    container_name: dolibarr-db
+    container_name: dolibarr-db${CONTAINER_SUFFIX:-}
     restart: unless-stopped
     environment:
       MARIADB_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
@@ -18,7 +18,7 @@ services:
 
   dolibarr:
     image: dolibarr/dolibarr:${DOLIBARR_VERSION}
-    container_name: dolibarr-web
+    container_name: dolibarr-web${CONTAINER_SUFFIX:-}
     restart: unless-stopped
     depends_on:
       mariadb:
@@ -35,6 +35,37 @@ services:
       DOLI_URL_ROOT: ${DOLI_URL_ROOT:-http://localhost:${DOLIBARR_PORT}}
       DOLI_INSTALL_AUTO: 1
       DOLI_INIT_DEMO: ${DOLI_INIT_DEMO}
+      DOLI_CRON_KEY: ${DOLI_CRON_KEY:-}
+      DOLI_CRON_USER: ${DOLI_CRON_USER:-admin}
+      WWW_USER_ID: 1000
+      WWW_GROUP_ID: 1000
+    volumes:
+      - ./dolibarr/documents:/var/www/documents
+      - ./dolibarr/custom:/var/www/html/custom
+      - ./php/custom.ini:/usr/local/etc/php/conf.d/zz-custom.ini:ro
+
+  # Tâches planifiées de Dolibarr (module mondaykardinal, etc.).
+  # Avec DOLI_CRON=1 l'image lance cron AU LIEU d'Apache : il faut donc un conteneur séparé.
+  # Activé seulement si COMPOSE_PROFILES=cron dans .env.
+  cron:
+    image: dolibarr/dolibarr:${DOLIBARR_VERSION}
+    container_name: dolibarr-cron${CONTAINER_SUFFIX:-}
+    profiles: ["cron"]
+    restart: unless-stopped
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      dolibarr:
+        condition: service_started
+    environment:
+      DOLI_DB_HOST: mariadb
+      DOLI_DB_NAME: ${MYSQL_DATABASE}
+      DOLI_DB_USER: ${MYSQL_USER}
+      DOLI_DB_PASSWORD: ${MYSQL_PASSWORD}
+      DOLI_URL_ROOT: ${DOLI_URL_ROOT:-http://localhost:${DOLIBARR_PORT}}
+      DOLI_CRON: 1
+      DOLI_CRON_KEY: ${DOLI_CRON_KEY:-}
+      DOLI_CRON_USER: ${DOLI_CRON_USER:-admin}
       WWW_USER_ID: 1000
       WWW_GROUP_ID: 1000
     volumes:
@@ -44,13 +75,13 @@ services:
 
   adminer:
     image: adminer:latest
-    container_name: dolibarr-adminer
+    container_name: dolibarr-adminer${CONTAINER_SUFFIX:-}
     restart: unless-stopped
     depends_on:
       mariadb:
         condition: service_healthy
     ports:
-      - "127.0.0.1:${ADMINER_PORT:-8096}:8080"
+      - "127.0.0.1:${ADMINER_PORT:-9090}:8080"
     environment:
       ADMINER_DEFAULT_SERVER: mariadb
 

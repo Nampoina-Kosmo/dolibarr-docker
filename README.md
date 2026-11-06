@@ -25,18 +25,10 @@ git clone <url-du-depot> docker-dolibarr
 cd docker-dolibarr
 ```
 
-Le fichier `.env` n'est pas versionné (il est dans `.gitignore`). S'il n'existe pas, le créer à la racine avec ce contenu :
+Le fichier `.env` n'est pas versionné (il est dans `.gitignore`). Le créer à partir du modèle `.env.example`, qui explique chaque variable (dont `CONTAINER_SUFFIX`), puis changer au minimum les mots de passe :
 
-```env
-DOLIBARR_VERSION=latest
-DOLIBARR_PORT=8095
-MYSQL_ROOT_PASSWORD=root_dev
-MYSQL_DATABASE=dolibarr
-MYSQL_USER=dolibarr
-MYSQL_PASSWORD=dolibarr_dev
-DOLI_ADMIN_LOGIN=admin
-DOLI_ADMIN_PASSWORD=admin
-DOLI_INIT_DEMO=0
+```bash
+cp .env.example .env
 ```
 
 Puis démarrer :
@@ -108,6 +100,14 @@ docker compose up -d
 | `DOLI_ADMIN_LOGIN` / `DOLI_ADMIN_PASSWORD` | Compte administrateur créé à l'installation |
 | `DOLI_INIT_DEMO` | `1` pour charger des données de démo (à l'installation uniquement) |
 | `MYSQL_*` | Accès à la base de données |
+| `CONTAINER_SUFFIX` | Suffixe ajouté au nom des conteneurs, pour faire tourner plusieurs applications sur le même serveur (ex. `-kardinal` donne `dolibarr-web-kardinal`). Vide ou absent : les noms restent `dolibarr-web`, `dolibarr-db`, `dolibarr-adminer` |
+| `ADMINER_PORT` | Port d'Adminer, limité à `127.0.0.1` (défaut `9090`). À changer d'une application à l'autre |
+| `COMPOSE_PROFILES` | Mettre `cron` pour lancer le conteneur des tâches planifiées (`dolibarr-cron`), requis par le module `mondaykardinal`. Vide : pas de conteneur cron |
+| `DOLI_CRON_KEY` / `DOLI_CRON_USER` | Clé de sécurité et utilisateur des tâches planifiées. La clé doit aussi être saisie dans Dolibarr (module Travaux planifiés → configuration) |
+
+Avec un `CONTAINER_SUFFIX`, adapter les noms dans les commandes de ce document (ex. `docker exec -it dolibarr-web-kardinal bash`). Les commandes `docker compose ...` ne changent pas.
+
+Pour plusieurs applications sur un même serveur : un dossier et un `.env` par application, avec un `DOLIBARR_PORT`, un `ADMINER_PORT` et un `CONTAINER_SUFFIX` différents.
 
 Les identifiants admin et `DOLI_INIT_DEMO` ne sont pris en compte qu'à la **première installation**. Pour les changer ensuite, faire un `docker compose down -v`.
 
